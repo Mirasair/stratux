@@ -225,6 +225,8 @@ func (conn *tcpConnection) GetConnectionKey() string {
 }
 
 
+const bleDefaultChunkSize = 20
+
 
 type bleConnection struct {
 	Capability   uint8
@@ -246,7 +248,27 @@ func (conn *bleConnection) Writer() io.Writer {
 }
 
 func (conn *bleConnection) Write(p []byte) (n int, err error) {
-	return conn.Characteristic.Write(p)
+	chunkSize := conn.GetDesiredPacketSize()
+	if chunkSize <= 0 {
+		chunkSize = bleDefaultChunkSize
+	}
+
+	for n < len(p) {
+		end := n + chunkSize
+		if end > len(p) {
+			end = len(p)
+		}
+
+		writtenNow, writeErr := conn.Characteristic.Write(p[n:end])
+		n += writtenNow
+		if writeErr != nil {
+			return n, writeErr
+		}
+		if writtenNow == 0 {
+			return n, io.ErrShortWrite
+		}
+	}
+	return n, nil
 }
 
 func (conn *bleConnection) IsThrottled() bool {
@@ -261,7 +283,7 @@ func (conn *bleConnection) Capabilities() uint8 {
 }
 
 func (conn *bleConnection) GetDesiredPacketSize() int {
-	return 20 // TODO
+	return bleDefaultChunkSize
 }
 
 func (conn *bleConnection) OnError(err error) {
