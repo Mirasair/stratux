@@ -421,7 +421,22 @@ func handleSettingsSetRequest(w http.ResponseWriter, r *http.Request) {
 					case "AIS_Enabled":
 						globalSettings.AIS_Enabled = val.(bool)
 					case "APRS_Enabled":
-						globalSettings.APRS_Enabled = val.(bool)
+						if val.(bool) {
+							setInternetTrafficMode(internetTrafficModeAPRSTCP)
+						} else {
+							globalSettings.APRS_Enabled = false
+						}
+					case "APRS_UDP_Enabled":
+						if val.(bool) {
+							setInternetTrafficMode(internetTrafficModeADSLUDP)
+						} else {
+							globalSettings.APRS_UDP_Enabled = false
+						}
+					case "InternetTrafficMode":
+						mode, ok := val.(string)
+						if !ok || !setInternetTrafficMode(mode) {
+							log.Printf("handleSettingsSetRequest:InternetTrafficMode: invalid mode %v\n", val)
+						}
 					case "Ping_Enabled":
 						globalSettings.Ping_Enabled = val.(bool)
 					case "Pong_Enabled":

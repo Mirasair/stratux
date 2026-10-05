@@ -8,7 +8,7 @@
     <p>Stratux can operate in several WiFi modes:</p>
     <ul class="list-simple">
         <li><strong>Access Point only (default)</strong> &mdash; Stratux creates its own WiFi network. Your EFB connects directly to it.</li>
-        <li><strong>Access Point + Client</strong> &mdash; Stratux creates its own network <em>and</em> connects to an existing network (e.g. a phone hotspot). Use this to enable internet connectivity for OGN APRS position reporting.</li>
+        <li><strong>Access Point + Client</strong> &mdash; Stratux creates its own network <em>and</em> connects to an existing network (e.g. a phone hotspot). Use this to enable internet connectivity for OGN APRS or ADS-L UDP traffic.</li>
         <li><strong>Client only</strong> &mdash; Stratux connects to an existing network and does not create its own. Advanced use only.</li>
     </ul>
     <p class="text-warning"><strong>WARNING:</strong> Misconfiguring WiFi settings can make your Stratux unreachable via the web interface. Recovery requires either SSH access over a wired connection or reflashing the SD card. Change these settings carefully.</p>
@@ -18,7 +18,7 @@
         <dt>Network Security</dt><dd>Turns wireless password protection <strong>On</strong> or <strong>Off</strong>. Disable only if your EFB has difficulty connecting.</dd>
         <dt>WiFi Passphrase</dt><dd>Password for your Stratux network when security is enabled.</dd>
         <dt>WiFi Channel</dt><dd>Changing the channel can help in congested WiFi environments (e.g. busy airports or FBOs).</dd>
-        <dt>WiFi Client Network</dt><dd>SSID and password of an existing network to connect to (phone hotspot, home router, etc). Used for internet-dependent features such as OGN APRS.</dd>
+        <dt>WiFi Client Network</dt><dd>SSID and password of an existing network to connect to (phone hotspot, home router, etc). Used for internet-dependent features such as OGN APRS and ADS-L UDP exchange.</dd>
     </dl>
 
     <h4>Diagnostics</h4>
@@ -51,6 +51,13 @@
 
     <h4>Configuration</h4>
     <ul class="list-simple">
+        <li>
+            <strong>Internet traffic</strong> &mdash; <strong>Off</strong> disables internet traffic,
+            <strong>OGN APRS (TCP)</strong> receives additional OGN traffic over the legacy TCP path, and
+            <strong>ADS-L exchange (UDP)</strong> sends the aircraft's tracker-generated ADS-L position and receives
+            nearby ADS-L traffic through the OGN exchange server. The UDP mode requires a compatible tracker firmware
+            that exports <code>$PADSL</code> records and an active internet connection.
+        </li>
         <li>
             <strong>Ownship Mode S / OGN Code</strong> &mdash; Enter your aircraft's ICAO 24-bit code
             (hexadecimal, not octal) to prevent your own transponder from appearing as traffic.

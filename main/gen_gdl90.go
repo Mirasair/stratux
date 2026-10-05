@@ -1190,6 +1190,7 @@ type settings struct {
 	ES_Enabled           bool
 	OGN_Enabled          bool
 	APRS_Enabled         bool
+	APRS_UDP_Enabled     bool
 	AIS_Enabled          bool
 	Ping_Enabled         bool
 	Pong_Enabled         bool
@@ -1272,6 +1273,18 @@ type status struct {
 	OGN_messages_total                         uint64
 	OGN_connected                              bool
 	APRS_connected                             bool
+	APRS_UDP_Active                             bool
+	APRS_UDP_MessagesSent                       uint64
+	APRS_UDP_BytesSent                          uint64
+	APRS_UDP_MessagesReceived                   uint64
+	APRS_UDP_BytesReceived                      uint64
+	APRS_UDP_TrafficDecoded                     uint64
+	APRS_UDP_TrafficRejected                    uint64
+	APRS_UDP_TrafficDuplicates                  uint64
+	APRS_UDP_Errors                             uint64
+	APRS_UDP_LastSendTime                       string
+	APRS_UDP_LastReceiveTime                    string
+	APRS_UDP_LastError                          string
 	AIS_messages_last_minute                   uint
 	AIS_messages_max                           uint
 	AIS_messages_total                         uint64
@@ -1323,6 +1336,38 @@ var globalSettings settings
 var globalStatus status
 var noConfigFound bool
 
+const (
+	internetTrafficModeNone    = "none"
+	internetTrafficModeAPRSTCP = "aprs-tcp"
+	internetTrafficModeADSLUDP = "adsl-udp"
+)
+
+// setInternetTrafficMode keeps the legacy APRS/TCP and ADS-L/UDP paths
+// mutually exclusive while retaining the persisted booleans for backwards
+// compatibility with existing configuration files.
+func setInternetTrafficMode(mode string) bool {
+	var aprsTCPEnabled, adslUDPEnabled bool
+	switch mode {
+	case internetTrafficModeNone:
+	case internetTrafficModeAPRSTCP:
+		aprsTCPEnabled = true
+	case internetTrafficModeADSLUDP:
+		adslUDPEnabled = true
+	default:
+		return false
+	}
+	globalSettings.APRS_Enabled = aprsTCPEnabled
+	globalSettings.APRS_UDP_Enabled = adslUDPEnabled
+	return true
+}
+
+func normalizeInternetTrafficSettings() {
+	if globalSettings.APRS_Enabled && globalSettings.APRS_UDP_Enabled {
+		setInternetTrafficMode(internetTrafficModeADSLUDP)
+		log.Printf("both APRS/TCP and ADS-L/UDP were enabled; using ADS-L/UDP only\n")
+	}
+}
+
 func defaultSettings() {
 	// Region is none if not specified, default to US settings
 	globalSettings.RegionSelected = 0
@@ -1332,6 +1377,7 @@ func defaultSettings() {
 	globalSettings.OGN_Enabled = false
 	globalSettings.Dump1090Gain = 37.2
 	globalSettings.APRS_Enabled = true
+	globalSettings.APRS_UDP_Enabled = false
 	globalSettings.GPS_Enabled = true
 	globalSettings.IMU_Sensor_Enabled = true
 	globalSettings.BMP_Sensor_Enabled = true
@@ -1407,6 +1453,7 @@ func readSettings() {
 		log.Printf("can't read settings %s: %s\n", configLocation, err.Error())
 		return
 	}
+	normalizeInternetTrafficSettings()
 	log.Printf("read in settings.\n")
 }
 

@@ -57,6 +57,7 @@ This repository offers code and binaries that can help you to build your own tra
 * More robust sensor handling
 * Traffic Radar and Map
 * Support for traffic output via Bluetooth LE
+* [Experimental bidirectional ADS-L traffic exchange over UDP](docs/integration/adsl-udp.md). Requires [compatible tracker firmware](https://github.com/Mirasair/cubecell-ogn-tracker/tree/adsl-uart-export) exporting `$PADSL`.
 * Estimation of Mode-S target distance
 * Support for NMEA output (including PFLAA/PFLAU traffic messages) via TCP Port 2000 and [serial](https://github.com/stratux/stratux/wiki/Stratux-Serial-output-for-EFIS's-that-support-GDL90-or-Flarm-NMEA-over-serial)
 * Over-the-air (OTA) software update (between minor releases)
