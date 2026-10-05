@@ -1729,6 +1729,7 @@ func initTraffic(isTraceReplayMode bool) {
 		go esListen()
 		go ognListen()
 		go aprsListen()
+		go aprsUDPSender()
 		go aisListen()
 	}
 }

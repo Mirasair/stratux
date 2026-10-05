@@ -386,9 +386,14 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="control-label col-xs-5">Internet (OGN APRS)</label>
+                        <label class="control-label col-xs-5">Internet traffic</label>
                         <div class="col-xs-7">
-                            <ui-switch ng-model='APRS_Enabled' settings-change></ui-switch>
+                            <select class="custom-select" ng-model="InternetTrafficMode"
+                                ng-change="updateInternetTrafficMode()">
+                                <option value="none">Off</option>
+                                <option value="aprs-tcp">OGN APRS (TCP)</option>
+                                <option value="adsl-udp">ADS-L exchange (UDP)</option>
+                            </select>
                         </div>
                     </div>
                     <div class="form-group reset-flow">

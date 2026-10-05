@@ -28,6 +28,9 @@ import (
 type OgnMessage struct {
 	Sys string
 	Time float64
+	// Timestamp preserves sub-second precision for binary protocols. It is not
+	// part of the ogn-rx JSON interface.
+	Timestamp time.Time `json:"-"`
 	Addr string
 	Addr_type int32
 	Acft_type string
@@ -46,6 +49,10 @@ type OgnMessage struct {
 	SNR_dB float64
 	Rx_err int32
 	Hard string
+	On_ground int32
+	NIC int
+	NACp int
+	Priority_status uint8
 
 	// Status message (Sys=status):
 	Bkg_noise_db float32
@@ -208,7 +215,12 @@ func importOgnTrafficMessage(msg OgnMessage, data string, fakeCurrentTime bool) 
 	}
 
 	if fakeCurrentTime {
-		msg.Time = float64(time.Now().UTC().Unix())
+		msg.Timestamp = time.Now().UTC()
+		msg.Time = float64(msg.Timestamp.Unix())
+	}
+	msgTimestamp := msg.Timestamp
+	if msgTimestamp.IsZero() && msg.Time > 0 {
+		msgTimestamp = time.Unix(0, int64(msg.Time*float64(time.Second))).UTC()
 	}
 
 	if existingTi, ok := traffic[key]; ok {
@@ -227,9 +239,8 @@ func importOgnTrafficMessage(msg OgnMessage, data string, fakeCurrentTime bool) 
 		if hasInfo {
 			traffic[key] = ti
 		}
-		if msg.Time > 0 && !ti.Timestamp.IsZero() {
- 			msgtime := time.Unix(int64(msg.Time), 0)
-			if ti.Position_valid && ti.Last_source == TRAFFIC_SOURCE_OGN && msgtime.Before(ti.Timestamp) {
+		if !msgTimestamp.IsZero() && !ti.Timestamp.IsZero() {
+			if ti.Position_valid && ti.Last_source == TRAFFIC_SOURCE_OGN && msgTimestamp.Before(ti.Timestamp) {
 				return // We already have a newer message for this target. This message was probably relayed by another tracker -- skip
 			}
 		}
@@ -255,12 +266,12 @@ func importOgnTrafficMessage(msg OgnMessage, data string, fakeCurrentTime bool) 
 		ti.Tail = getTailNumber(msg.Addr, msg.Sys)
 	}
 	ti.Last_source = TRAFFIC_SOURCE_OGN
-	if msg.Time > 0 {
-		if msg.Time < float64(ti.Timestamp.Unix()) {
+	if !msgTimestamp.IsZero() {
+		if !ti.Timestamp.IsZero() && msgTimestamp.Before(ti.Timestamp) {
 			//log.Printf("Discarding traffic message from %d as it is %fs too old", ti.Icao_addr, ti.Timestamp.Unix() - msg.Time)
 			return
 		}
-		ti.Timestamp = time.Unix(int64(msg.Time), 0)
+		ti.Timestamp = msgTimestamp
 	} else {
 		ti.Timestamp = time.Now().UTC()
 	}
@@ -315,6 +326,10 @@ func importOgnTrafficMessage(msg OgnMessage, data string, fakeCurrentTime bool) 
 	ti.Speed = uint16(msg.Speed_mps * 1.94384)
 	ti.Speed_valid = true
 	ti.SignalLevel = msg.SNR_dB
+	ti.OnGround = msg.On_ground != 0
+	ti.NIC = msg.NIC
+	ti.NACp = msg.NACp
+	ti.PriorityStatus = msg.Priority_status
 
 	if isGPSValid() {
 		ti.Distance, ti.Bearing = common.Distance(float64(mySituation.GPSLatitude), float64(mySituation.GPSLongitude), float64(ti.Lat), float64(ti.Lng))

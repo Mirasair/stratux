@@ -17,12 +17,14 @@ page is the map; the linked docs have the detail.
 | **X-Plane / FF-sim** | UDP `:49002` | GPS + attitude + traffic datagrams | push → DHCP-lease clients | SkyDemon, X-Plane |
 | **Cursor-on-Target** | UDP `:8087` | CoT XML | **inbound** | ATAK (injects traffic) |
 | **NMEA in** | TCP `:30011` | NMEA | **inbound** | external OGN tracker feeding data in |
+| **ADS-L exchange** | UDP `ogn3.glidernet.org:14590` | GDL90 `0x60` carrying ADS-L | bidirectional internet exchange | OGN ADS-L exchange server |
 | **HTTP / WebSocket JSON** | TCP `:80` | JSON | request / stream | any tool, see below |
 
 Details:
 
 - [gdl90.md](gdl90.md) — the GDL90/UDP protocol, how to recognize Stratux, sleep mode, traffic lifecycle, ForeFlight specifics.
 - [other-transports.md](other-transports.md) — FLARM/NMEA (TCP/UDP/serial/BLE), X-Plane, Cursor-on-Target, and the `Capability` bitmask.
+- [adsl-udp.md](adsl-udp.md) — experimental bidirectional ADS-L exchange over UDP, including the tracker `$PADSL` input.
 - [http-api.md](../http-api.md) — the full HTTP + WebSocket JSON API (status, situation, traffic, weather, settings…).
 - [settings-reference.md](../settings-reference.md) — every setting, including the output configuration (`NetworkOutputs`, `SerialOutputs`, `BleOutputs`).
 

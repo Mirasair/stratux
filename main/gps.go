@@ -1091,8 +1091,27 @@ func processNMEALine(l string) (sentenceUsed bool) {
 }
 
 func processNMEALineLow(l string, fakeGpsTimeToCurr bool) (sentenceUsed bool) {
-	mySituation.muGPS.Lock()
 	TraceLog.Record(CONTEXT_NMEA, []byte(l))
+	if strings.HasPrefix(l, "$PADSL,") {
+		lValid, validNMEAChecksum := validateNMEAChecksum(l)
+		if !validNMEAChecksum {
+			if len(lValid) > 0 {
+				log.Printf("GPS error. Invalid $PADSL sentence: %s\n", lValid)
+			}
+			return false
+		}
+		packet, err := parsePADSLFields(strings.Split(lValid, ","))
+		if err != nil {
+			log.Printf("GPS error. Invalid $PADSL sentence: %s\n", err)
+			return false
+		}
+		if !fakeGpsTimeToCurr {
+			queueAPRSUDPTrackerPacket(packet)
+		}
+		return true
+	}
+
+	mySituation.muGPS.Lock()
 
 	defer func() {
 		if sentenceUsed || globalSettings.DEBUG {

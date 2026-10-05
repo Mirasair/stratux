@@ -24,7 +24,8 @@ several of these fields configure.
 | `UAT_Enabled` | bool | 978 MHz UAT receiver (FIS-B weather + UAT traffic). |
 | `ES_Enabled` | bool | 1090 MHz ES (ADS-B) receiver via `dump1090`. |
 | `OGN_Enabled` | bool | 868 MHz OGN/FLARM receiver via `ogn-rx-eu`. |
-| `APRS_Enabled` | bool | APRS traffic ingestion (glidernet/OGN path). |
+| `APRS_Enabled` | bool | Receive OGN APRS traffic over the legacy TCP path. Mutually exclusive with `APRS_UDP_Enabled`. |
+| `APRS_UDP_Enabled` | bool | Exchange ADS-L position and traffic with `ogn3.glidernet.org:14590` over UDP. Requires a compatible tracker that exports its prepared ADS-L position as `$PADSL`. Mutually exclusive with `APRS_Enabled`. |
 | `AIS_Enabled` | bool | Marine AIS receiver via `rtl_ais`. |
 | `Ping_Enabled` | bool | uAvionix Ping external USB receiver (`/dev/ping`, `/dev/pingusb`). |
 | `Pong_Enabled` | bool | Pong dual-band external USB receiver (`/dev/pong`). Auto-enables when the device appears. |
